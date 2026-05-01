@@ -217,7 +217,49 @@ exports.inviteUser = async (req, res) => {
     const startDate = new Date(trip.startDate).toLocaleDateString();
 
     const subject = `Invitation to join the trip to ${destination}`;
-    const body = `Hi, \n\nYou are invited to join the trip to ${destination} on ${startDate} \n\nClick on the link below to join \n\n${inviteLink}`;
+    
+    // Create proper HTML email body with clickable link
+    const body = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { color: #1a7fc1; font-size: 24px; margin-bottom: 20px; }
+            .content { line-height: 1.6; margin-bottom: 30px; }
+            .button { 
+              display: inline-block; 
+              padding: 12px 30px; 
+              background-color: #1a7fc1; 
+              color: white; 
+              text-decoration: none; 
+              border-radius: 5px; 
+              margin: 20px 0;
+            }
+            .button:hover { background-color: #0d5a8a; }
+            .footer { color: #999; font-size: 12px; margin-top: 30px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">You're Invited!</div>
+            <div class="content">
+              <p>Hi,</p>
+              <p>You are invited to join a trip to <strong>${destination}</strong> on <strong>${startDate}</strong>.</p>
+              <p>A spot has been reserved for you on this upcoming adventure. Click the button below to accept and join the trip.</p>
+              <a href="${inviteLink}" class="button">Accept Invite & Join Trip</a>
+              <p>Or copy and paste this link in your browser:<br/><a href="${inviteLink}">${inviteLink}</a></p>
+              <p>This invite link will expire in 24 hours.</p>
+            </div>
+            <div class="footer">
+              <p>If you didn't expect this invite, please ignore this email.</p>
+              <p>© 2024 Iternation. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
     await sendEmail(email, subject, body);
 
@@ -233,18 +275,24 @@ exports.verifyInvite = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Missing invite token" });
     }
+    
+    // Trim token to handle any potential whitespace issues
+    const cleanToken = token.trim();
+    
     const findInvite = await TripMember.findOne({
       where: {
-        inviteToken: token,
+        inviteToken: cleanToken,
         status: "invited",
         inviteExpire: {
           [Op.gt]: new Date(),
         },
       },
     });
+    
     if (!findInvite) {
       return res.status(400).json({ message: "Invalid or expired invite" });
     }
+    
     let userExist = true;
     const findUser = await UserAuth.findOne({
       where : {
@@ -271,24 +319,46 @@ exports.acceptInvite = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Missing invite token" });
     }
-    const invite = await TripMember.findOne({ where: { inviteToken: token } });
+    
+    // Trim token to handle any potential whitespace issues
+    const cleanToken = token.trim();
+    
+    // Check if token exists and is not expired
+    const invite = await TripMember.findOne({ 
+      where: { 
+        inviteToken: cleanToken,
+        status: "invited",
+        inviteExpire: {
+          [Op.gt]: new Date(),
+        }
+      } 
+    });
+    
     if (!invite) {
-      return res.status(400).json({ message: "Invalid invite token" });
+      return res.status(400).json({ message: "Invalid or expired invite token" });
     }
+    
     const user = await UserAuth.findOne({ where: { email: invite.email } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
     invite.userId = user.id;
     invite.name = user.name;
     invite.status = "accepted";
     invite.inviteToken = null;
     invite.inviteExpire = null;
     await invite.save();
+    
     await UserExpense.create({
       tripId: invite.tripId,
       userId: user.id,
     });
+    
     const tokenJwt = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+    
     return res.status(200).json({
       message: "Joined trip successfully",
       token: tokenJwt,
