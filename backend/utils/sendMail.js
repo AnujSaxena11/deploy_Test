@@ -1,33 +1,62 @@
-const nodemailer = require("nodemailer");
+const axios = require("axios");
+require("dotenv").config();
 
-let transporter = null;
-if(process.env.EMAIL_USER && process.env.EMAIL_PASS){
-    transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth:{
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-}
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const SENDER_EMAIL = process.env.EMAIL_USER;
+const SENDER_NAME = "IterNation";
 
-async function sendEmail(to, subject, text){
-    if(!transporter){
-        console.warn("sendEmail: transporter not configured, skipping send to", to);
-        return;
+const sendEmail = async (email, subject, text, htmlContent = null) => {
+  try {
+    if (!BREVO_API_KEY) {
+      console.warn("sendEmail: BREVO_API_KEY not configured, skipping send to", email);
+      return;
     }
-    try{
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to,
-            subject,
-            text,
-        });
-        console.log("Email Sent");
+    if (!SENDER_EMAIL) {
+      console.warn("sendEmail: SENDER_EMAIL not configured, skipping send to", email);
+      return;
     }
-    catch(e){
-        console.error("sendEmail error:", e && e.message ? e.message : e);
+
+    const payload = {
+      sender: {
+        name: SENDER_NAME,
+        email: SENDER_EMAIL,
+      },
+      to: [
+        {
+          email: email,
+        },
+      ],
+      subject: subject,
+    };
+
+    // Use HTML if provided, otherwise use plain text
+    if (htmlContent) {
+      payload.htmlContent = htmlContent;
+    } else {
+      payload.textContent = text;
     }
-}
+
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      payload,
+      {
+        headers: {
+          accept: "application/json",
+          "api-key": BREVO_API_KEY,
+          "content-type": "application/json",
+        },
+      }
+    );
+
+    console.log("Email sent successfully via Brevo HTTP API!");
+    return response.data;
+  } catch (err) {
+    console.error(
+      "Brevo API error:",
+      err.response ? err.response.data : err.message
+    );
+    throw err;
+  }
+};
 
 module.exports = sendEmail;
