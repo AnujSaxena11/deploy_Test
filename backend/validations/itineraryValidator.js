@@ -1,0 +1,54 @@
+const Joi = require('joi');
+const { activity, imgUrl } = require('../models/itinerary_models/slotsData');
+
+
+const startTime = Joi.string()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .required()
+    .messages({
+        'string.empty': 'Start time is required',
+        'string.pattern.base': "Start time must be between 00:00 to 23:59"
+    });
+
+const endTime = Joi.string()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .required()
+    .messages({
+        'string.empty': 'Start time is required',
+        'string.pattern.base': "Start time must be between 00:00 ans 23:59",
+    });
+
+const createSlotSchema = Joi.object({
+    startTime,
+    endTime,
+    activity : Joi.string(),
+    imgUrl : Joi.string()
+}).custom((value, helpers) => {
+
+    if (value.endTime <= value.startTime) {
+        return helpers.message("End time must be greater than start time");
+    }
+
+    return value;
+
+});
+
+const updateSlotSchema = Joi.object({
+    startTime,
+    endTime,
+    activity : Joi.string(),
+    imgUrl : Joi.string()
+}).custom((value, helpers) => {
+
+    if (value.endTime <= value.startTime) {
+        return helpers.message("End time must be greater than start time");
+    }
+
+    return value;
+
+});
+
+module.exports = {
+    createSlotSchema,
+    updateSlotSchema
+}
