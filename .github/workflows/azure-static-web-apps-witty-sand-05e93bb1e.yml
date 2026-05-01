@@ -32,6 +32,15 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+        env:
+          VITE_HOME_IMG1: ${{ secrets.VITE_HOME_IMG1 }}
+          VITE_HOME_IMG2: ${{ secrets.VITE_HOME_IMG2 }}
+          VITE_HOME_IMG3: ${{ secrets.VITE_HOME_IMG3 }}
+          VITE_HOME_IMG4: ${{ secrets.VITE_HOME_IMG4 }}
+          VITE_AUTH_IMG: ${{ secrets.VITE_AUTH_IMG }}
+          VITE_PROGILE_BG: ${{ secrets.VITE_PROFILE_BG }}
+          VITE_INVITATION_VIDEO: ${{ secrets.VITE_INVITATION_VIDEO }}
+          VITE_TRIP_VIDEO: ${{ secrets.VITE_TRIP_VIDEO }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
