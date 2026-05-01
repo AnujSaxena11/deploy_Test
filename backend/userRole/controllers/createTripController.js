@@ -208,7 +208,13 @@ exports.inviteUser = async (req, res) => {
         inviteExpire: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
     }
-    const FRONTEND_URL = process.env.FRONTEND_URL.split('||');
+    const frontendUrls = process.env.FRONTEND_URL.split('||');
+    const FRONTEND_URL = process.env.NODE_ENV === 'production' ? frontendUrls[1]?.trim() : frontendUrls[0]?.trim();
+    
+    if (!FRONTEND_URL) {
+      throw new Error("FRONTEND_URL not configured properly in .env");
+    }
+    
     const inviteLink = `${FRONTEND_URL.replace(/\/$/, "")}/join-trip?token=${inviteRecord.inviteToken}`;
 
     const trip = await TripData.findByPk(tripId);
@@ -218,7 +224,13 @@ exports.inviteUser = async (req, res) => {
     const subject = `Invitation to join the trip to ${destination}`;
     const body = `Hi, \n\nYou are invited to join the trip to ${destination} on ${startDate} \n\nClick on the link below to join \n\n${inviteLink}`;
 
-    await sendEmail(email, subject, body);
+    try {
+      await sendEmail(email, subject, body);
+      console.log(`Invitation email sent to ${email}`);
+    } catch (emailErr) {
+      console.error(`Failed to send invitation email to ${email}:`, emailErr.message);
+      // Don't fail the invitation if email fails
+    }
 
     return res.status(200).json({ message: "Invitation sent" });
   } catch (e) {
