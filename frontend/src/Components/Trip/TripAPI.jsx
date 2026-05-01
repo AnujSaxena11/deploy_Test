@@ -3,7 +3,7 @@ import axios from "axios";
 const API = import.meta.env.VITE_API_URL;
 
 export const getTripById = async (id) => {
-  const res = await axios.get(`${API}/read-trips/my-trip/${id}`, { withCredentials: true });
+  const res = await axios.get(`${API}/api/read-trips/my-trip/${id}`, { withCredentials: true });
   return res.data;
 };
 
@@ -57,7 +57,7 @@ export const getTripExpenses = async (tripId) => {
 
 export const addExpense = async (tripId, payload) => {
   const res = await axios.post(
-    `${API}/expense-splitter/add-expense/${tripId}`,
+    `${API}/api/expense-splitter/add-expense/${tripId}`,
     payload,
     { withCredentials: true }
   );
