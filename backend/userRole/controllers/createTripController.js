@@ -208,8 +208,7 @@ exports.inviteUser = async (req, res) => {
         inviteExpire: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
     }
-    const frontendUrls = process.env.FRONTEND_URL.split('||');
-    const FRONTEND_URL = process.env.NODE_ENV === 'production' ? frontendUrls[1] : frontendUrls[0];
+    const FRONTEND_URL = process.env.FRONTEND_URL.split('||');
     const inviteLink = `${FRONTEND_URL.replace(/\/$/, "")}/join-trip?token=${inviteRecord.inviteToken}`;
 
     const trip = await TripData.findByPk(tripId);
@@ -218,20 +217,8 @@ exports.inviteUser = async (req, res) => {
 
     const subject = `Invitation to join the trip to ${destination}`;
     const body = `Hi, \n\nYou are invited to join the trip to ${destination} on ${startDate} \n\nClick on the link below to join \n\n${inviteLink}`;
-    
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Trip Invitation</h2>
-        <p>Hi,</p>
-        <p>You are invited to join the trip to <strong>${destination}</strong> on <strong>${startDate}</strong></p>
-        <p>Click the button below to join:</p>
-        <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;">Join Trip</a>
-        <p>Or copy this link: <a href="${inviteLink}">${inviteLink}</a></p>
-        <p>Best regards,<br>iTernation Team</p>
-      </div>
-    `;
 
-    await sendEmail(email, subject, body, htmlContent);
+    await sendEmail(email, subject, body);
 
     return res.status(200).json({ message: "Invitation sent" });
   } catch (e) {
