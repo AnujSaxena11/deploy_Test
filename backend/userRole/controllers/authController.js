@@ -43,7 +43,7 @@ exports.createUser = async (req, res) => {
     const token = jwt.sign(payload, jwt_secret, { expiresIn: "1h" });
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "None",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 1000,
     });
@@ -76,7 +76,7 @@ exports.loginUser = async (req, res) => {
       const token = jwt.sign(payLoad, jwt_secret, { expiresIn: "1h" });
       res.cookie("token", token, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
         secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60 * 1000,
       });
