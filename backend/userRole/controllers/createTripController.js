@@ -208,7 +208,8 @@ exports.inviteUser = async (req, res) => {
         inviteExpire: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
     }
-    const FRONTEND_URL = process.env.FRONTEND_URL.split('||');
+    const frontendUrls = process.env.FRONTEND_URL.split('||');
+    const FRONTEND_URL = process.env.NODE_ENV === 'production' ? frontendUrls[1] : frontendUrls[0];
     const inviteLink = `${FRONTEND_URL.replace(/\/$/, "")}/join-trip?token=${inviteRecord.inviteToken}`;
 
     const trip = await TripData.findByPk(tripId);
