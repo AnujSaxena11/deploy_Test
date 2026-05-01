@@ -41,6 +41,7 @@ jobs:
           VITE_PROGILE_BG: ${{ secrets.VITE_PROFILE_BG }}
           VITE_INVITATION_VIDEO: ${{ secrets.VITE_INVITATION_VIDEO }}
           VITE_TRIP_VIDEO: ${{ secrets.VITE_TRIP_VIDEO }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
