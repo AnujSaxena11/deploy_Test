@@ -6,7 +6,7 @@ import { getMe } from "../Auth/authApi";
 import { getMembers } from "../Trip/TripAPI";
 import { getChatHistory } from "./ChatAPI";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL + "/api";
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export default function GroupChat() {
   const { tripId } = useParams();
