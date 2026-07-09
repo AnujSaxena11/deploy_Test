@@ -2,6 +2,34 @@ const axios = require("axios");
 const { Op } = require("sequelize");
 const { ItineraryData, DayData, SlotData, TripData, TripMember } = require("../../config/db");
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function callMlService(city, activity, excludePlaces) {
+    const url = `${process.env.ML_SERVICE_API}/itinerary/create-slots`;
+    let lastError;
+
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+        try {
+            return await axios.post(
+                url,
+                { city, activity, excludePlaces },
+                { timeout: 180000 }
+            );
+        } catch (error) {
+            lastError = error;
+            const status = error.response?.status;
+            if (status && status < 500) {
+                throw error;
+            }
+            if (attempt < 3) {
+                await sleep(5000 * attempt);
+            }
+        }
+    }
+
+    throw lastError;
+}
+
 function normalizeText(text) {
     return (text || "").toString().trim().toLowerCase();
 }
@@ -160,10 +188,7 @@ exports.createPlanWithAI = async (req, res) => {
                 .filter(Boolean)
         ));
 
-        const response = await axios.post(
-            `${process.env.ML_SERVICE_API}/itinerary/create-slots`,
-            { city, activity, excludePlaces: existingPlaces }
-        );
+        const response = await callMlService(city, activity, existingPlaces);
 
         const dayPlan = response?.data?.data?.day_plan;
 
