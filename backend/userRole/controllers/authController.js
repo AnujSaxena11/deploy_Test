@@ -34,8 +34,9 @@ async function verifyUser(plainPass, hashedPass) {
 
 const getCookieOptions = () => ({
   httpOnly: true,
-  sameSite: "strict",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   secure: process.env.NODE_ENV === "production",
+  path: "/",
 });
 
 exports.createUser = async (req, res) => {
