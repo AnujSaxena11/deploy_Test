@@ -18,11 +18,7 @@ app.include_router(itinerary.router, prefix = '/itinerary', tags = ['Itinerary']
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, FastAPI!", "status": "ok"}
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+    return {"message": "Hello, FastAPI!"}
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: str = None):
