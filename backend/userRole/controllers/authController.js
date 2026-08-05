@@ -39,6 +39,28 @@ const getCookieOptions = () => ({
   path: "/",
 });
 
+exports.googleOauthCallback = async (req, res) => {
+  const user = req.user;
+  const payload = { id: user.id };
+  const access_token = jwt.sign(payload, jwt_access_secret, { expiresIn: accessTokenExpiry });
+  const refresh_token = jwt.sign(payload, jwt_refresh_secret, { expiresIn: refreshTokenExpiry });
+  const hash_token = await hashPass(refresh_token);
+
+  user.refresh_token = hash_token;
+  await user.save();
+
+  res.cookie("access_token", access_token, {
+    ...getCookieOptions(),
+    maxAge: 15 * 60 * 1000,
+  });
+  res.cookie("refresh_token", refresh_token, {
+    ...getCookieOptions(),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+  
+  return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+}
+
 exports.createUser = async (req, res) => {
   try {
     const { name, email, password, cpassword } = req.body;
@@ -336,5 +358,6 @@ module.exports = {
   logout: exports.logout,
   getMe: exports.getMe,
   getUserById: exports.getUserById,
-  authRefreshToken: exports.authRefreshToken
+  authRefreshToken: exports.authRefreshToken,
+  googleOauthCallback: exports.googleOauthCallback
 };

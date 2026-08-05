@@ -4,6 +4,8 @@ const app = express();
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
 require("dotenv").config();
+const passport = require("passport");
+const initializePassport = require("./config/passport");
 
 const authRoutes = require("./userRole/routes/authRoute");
 const createTripRoutes = require("./userRole/routes/createTripRoute");
@@ -109,6 +111,10 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
+
+app.use(passport.initialize());
+initializePassport(passport);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
