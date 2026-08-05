@@ -227,16 +227,10 @@ exports.createpassword = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
-    const cookieOptions = {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-    };
-
+    const cookieOptions = getCookieOptions();
     const access_token = req.cookies.access_token;
-    const decode = jwt.verify(access_token, jwt_access_secret);
-    const user = await UserAuth.findByPk(decode.id);
+    const decoded = jwt.verify(access_token, jwt_access_secret);
+    const user = await UserAuth.findByPk(decoded.id);
     user.refresh_token = null;
     await user.save();
 
