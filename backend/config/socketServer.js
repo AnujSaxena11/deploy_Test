@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { TripMember, ChatMessage, UserAuth } = require('./db');
 const jwt_access_secret = process.env.JWT_ACCESS_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 
 const parseCookies = (cookieHeader = '') => {
@@ -17,7 +18,7 @@ const parseCookies = (cookieHeader = '') => {
 const initializeSocketServer = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: 'http://localhost:5173',
+      origin: FRONTEND_URL,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       credentials: true,
     },
